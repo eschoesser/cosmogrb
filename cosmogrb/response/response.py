@@ -255,12 +255,12 @@ class Response(object):
         fits_file = RSP(
             self._energy_edges,
             self._channel_edges,
-            self.matrix.T,  # we transpose teh matrix earlier for speed
+            self.matrix.T,  # we transpose the matrix earlier for speed
             telescope_name,
             instrument_name,
         )
 
-        fits_file.writeto(filename, clobber=overwrite)
+        fits_file.writeto(filename, overwrite=overwrite)
 
 
 __all__ = ["Response"]
