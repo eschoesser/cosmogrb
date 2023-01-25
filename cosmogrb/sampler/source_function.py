@@ -221,7 +221,7 @@ class SourceFunction(object, metaclass=abc.ABCMeta):
         if uselog:
             norm = mpl.colors.LogNorm(vmin=min(time), vmax=max(time))
         else:
-            mpl.colors.Normalize(vmin=min(time), vmax=max(time))
+            norm = mpl.colors.Normalize(vmin=min(time), vmax=max(time))
 
         #Add an axis for colorbar on right
         divider = make_axes_locatable(ax)
