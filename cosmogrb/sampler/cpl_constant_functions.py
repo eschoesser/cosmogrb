@@ -57,7 +57,9 @@ def folded_cpl_evolution(
     response,
     z,
 ):
-
+    #response[0]: mean mc_energies
+    #response[1]: effective area at mean mc_energies (summed over detector channels), unit: cm^2
+    # output unit: 1/keV/s
     return interp(response[0], response[1], energy) * cpl_evolution(
         energy, time, peak_flux, ep, alpha, emin, emax, z
     )

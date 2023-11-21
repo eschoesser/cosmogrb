@@ -21,7 +21,7 @@ def cpl(x, alpha, xp, F, a, b):
 
     # Cutoff power law
 
-    # get the intergrated flux
+    # get the intergrated flux, unit: keV^2
 
     i1 = gammaincc(2.0 + alpha, a / ec) * gamma(2.0 + alpha)
     i2 = gammaincc(2.0 + alpha, b / ec) * gamma(2.0 + alpha)
@@ -33,6 +33,7 @@ def cpl(x, alpha, xp, F, a, b):
     erg2keV = 6.24151e8
 
     norm = F * erg2keV / (intflux)
+    # unit norm: 1/cm^2/keV/s
 
     log_xc = np.log(ec)
 
