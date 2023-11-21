@@ -7,12 +7,15 @@ import pandas as pd
 import popsynth
 from IPython.display import display
 from natsort import natsorted
+from pathlib import Path
 
 from cosmogrb.grb.grb_detector import GRBDetector
 from cosmogrb.io.detector_save import DetectorSave
 from cosmogrb.io.grb_save import GRBSave
 from cosmogrb.utils.file_utils import file_existing_and_readable
 from cosmogrb.utils.logging import setup_logger
+import gc
+from dask.distributed import progress
 
 logger = setup_logger(__name__)
 
@@ -21,9 +24,7 @@ class Observation(object):
     def __init__(
         self,
         grb_save_file: str,
-        grb_detector_file: Optional[str] = None,
-        population: Optional[popsynth.Population] = None,
-        idx=None,
+        grb_detector_file: Optional[str] = None
     ):
         """
         A small container class to access observations
@@ -234,11 +235,21 @@ class Survey(collections.OrderedDict):
 
             args = []
             for grb_file in self._grb_save_files:
-
-                args.append([grb_file, detector_type, kwargs])
-
+                if grb_file.exists():
+                    logger.info(f"{grb_file} already exists")
+                else:
+                    args.append([grb_file, detector_type, kwargs])
+            
             futures = client.map(_submit, args)
-            client.gather(futures)
+            #Monitor results
+            progress(futures)
+
+            res = client.gather(futures)
+
+            del all_futures
+            del res
+            gc.collect()
+            
 
         else:
 
@@ -356,3 +367,6 @@ def _submit(args):
     processor = detector_type(grb_save_file_name=grb_file, **kwargs)
     processor.process()
     processor.save()
+    del processor
+    del args
+    gc.collect()

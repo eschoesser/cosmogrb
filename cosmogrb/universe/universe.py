@@ -3,10 +3,13 @@ import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from tqdm import tqdm
+from dask.distributed import progress
 
 import numpy as np
 import popsynth
 from numpy.typing import ArrayLike
+import gc
 
 from cosmogrb.universe.survey import Survey
 from cosmogrb.utils.logging import setup_logger
@@ -110,10 +113,15 @@ class Universe(object, metaclass=abc.ABCMeta):
             )
 
             file_name: Path = self._save_path / f"{self._name[i]}_store.h5"
+            
+            if file_name.exists():
+                
+                logger.info(f'{file_name} already exists')
 
-            param_server.set_file_path(file_name)
+            else:
+                param_server.set_file_path(file_name)
 
-            self._parameter_servers.append(param_server)
+                self._parameter_servers.append(param_server)
 
     def _process_populations(self) -> None:
         self._get_sky_coord()
@@ -132,19 +140,24 @@ class Universe(object, metaclass=abc.ABCMeta):
         """
 
         if client is not None:
-
-            futures = client.map(self._grb_wrapper, self._parameter_servers)
+            
+            chunk_size = 10  # Set your desired chunk size
+            parameter_servers_future = client.scatter(self._parameter_servers)
+            futures = client.map(self._grb_wrapper, parameter_servers_future)
+            progress(futures)
             res = client.gather(futures)
 
             del futures
             del res
+            gc.collect()
 
         else:
 
             res = [
-                self._grb_wrapper(ps, serial=True)
-                for ps in self._parameter_servers
+                self._grb_wrapper(self._parameter_servers[i], serial=True)
+                for i in tqdm(range(len(self._parameter_servers)),desc='All GRBs')
             ]
+            gc.collect()
 
         self._is_processed = True
 
