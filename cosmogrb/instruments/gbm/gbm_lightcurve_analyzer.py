@@ -107,17 +107,28 @@ class GBMLightCurveAnalyzer(LightCurveAnalyzer):
                 logger.debug(f"checking time scale {time_scale}")
 
                 n_bins_src = int(np.floor(time_scale / self._base_timescale))
-
-                detected, time = _run_trigger(
-                    self._n_bins_background,
-                    self._n_bins_pre,
-                    n_bins_src,
-                    starts,
-                    stops,
-                    counts,
-                    ts.exposures,
-                    self._threshold,
-                )
+                try:
+                    detected, time = _run_trigger(
+                        self._n_bins_background,
+                        self._n_bins_pre,
+                        n_bins_src,
+                        starts,
+                        stops,
+                        counts,
+                        ts.exposures,
+                        self._threshold,
+                    )
+                except ZeroDivisionError:
+                    detected = False
+                    print('ZeroDivision error occured')
+                    print(self._n_bins_background, '\n',
+                        self._n_bins_pre, '\n',
+                        n_bins_src, '\n',
+                        starts, '\n',
+                        stops, '\n',
+                        counts, '\n',
+                        ts.exposures, '\n',
+                        self._threshold)
 
                 # if there is a detection we can stop
                 # because there is no need to search

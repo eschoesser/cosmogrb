@@ -235,10 +235,7 @@ class Survey(collections.OrderedDict):
 
             args = []
             for grb_file in self._grb_save_files:
-                if grb_file.exists():
-                    logger.info(f"{grb_file} already exists")
-                else:
-                    args.append([grb_file, detector_type, kwargs])
+                args.append([grb_file, detector_type, kwargs])
             
             futures = client.map(_submit, args)
             #Monitor results
@@ -246,7 +243,7 @@ class Survey(collections.OrderedDict):
 
             res = client.gather(futures)
 
-            del all_futures
+            del futures
             del res
             gc.collect()
             
